@@ -15,6 +15,7 @@ import masterous.si6a.kontak.db.User;
 
 public class KontakViewAdapter extends RecyclerView.Adapter<KontakViewAdapter.ViewHolder> {
     private List<User> data = new ArrayList<>();
+    private OnClickListener listener;
 
     public void setData(List<User> data) {
         this.data = data;
@@ -34,6 +35,22 @@ public class KontakViewAdapter extends RecyclerView.Adapter<KontakViewAdapter.Vi
         holder.itemKontakBinding.tvName.setText(user.getName());
         holder.itemKontakBinding.tvEmail.setText(user.getEmail());
         holder.itemKontakBinding.tvPhone.setText(user.getPhone());
+        holder.itemKontakBinding.ivEdit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (listener != null) {
+                    listener.onEditClicked(user);
+                }
+            }
+        });
+        holder.itemKontakBinding.ivDelete.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (listener != null) {
+                    listener.onDeleteClicked(user.getId());
+                }
+            }
+        });
     }
 
     @Override
@@ -48,5 +65,14 @@ public class KontakViewAdapter extends RecyclerView.Adapter<KontakViewAdapter.Vi
             super(itemView.getRoot());
             itemKontakBinding = itemView;
         }
+    }
+
+    public void setOnClickListener(OnClickListener listener) {
+        this.listener = listener;
+    }
+
+    public interface OnClickListener {
+        void onEditClicked(User user);
+        void onDeleteClicked(int userId);
     }
 }
