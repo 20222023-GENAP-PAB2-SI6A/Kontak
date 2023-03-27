@@ -9,11 +9,13 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 
 import android.os.Bundle;
 import android.view.View;
+import android.widget.Toast;
 
 import java.util.List;
 
 import masterous.si6a.kontak.databinding.ActivityMainBinding;
 import masterous.si6a.kontak.db.User;
+import masterous.si6a.kontak.loaders.DeleteLoader;
 import masterous.si6a.kontak.loaders.GetDataLoader;
 
 public class MainActivity extends AppCompatActivity {
@@ -63,6 +65,48 @@ public class MainActivity extends AppCompatActivity {
         binding.rvKontak.setLayoutManager(new LinearLayoutManager(this));
         binding.rvKontak.setAdapter(kontakViewAdapter);
         kontakViewAdapter.setData(data);
+        kontakViewAdapter.setOnClickListener(new KontakViewAdapter.OnClickListener() {
+            @Override
+            public void onEditClicked(User user) {
+
+            }
+
+            @Override
+            public void onDeleteClicked(int userId) {
+                deleteUser(userId);
+            }
+        });
+    }
+
+    private void deleteUser(int userId) {
+        showProgressBar();
+        Bundle args = new Bundle();
+        args.putInt("id", userId);
+        LoaderManager.getInstance(this).restartLoader(DELETE_LOADER_CODE, args, new LoaderManager.LoaderCallbacks<Integer>() {
+            @NonNull
+            @Override
+            public Loader<Integer> onCreateLoader(int id, @Nullable Bundle args) {
+                return new DeleteLoader(MainActivity.this, args.getInt("id"));
+            }
+
+            @Override
+            public void onLoadFinished(@NonNull Loader<Integer> loader, Integer data) {
+                hideProgressBar();
+                if (data != -1) {
+                    itemDeleted();
+                }
+            }
+
+            @Override
+            public void onLoaderReset(@NonNull Loader<Integer> loader) {
+
+            }
+        }).forceLoad();
+    }
+
+    private void itemDeleted() {
+        Toast.makeText(this, "User deleted!", Toast.LENGTH_SHORT).show();
+        getData();
     }
 
     private void hideProgressBar() {
