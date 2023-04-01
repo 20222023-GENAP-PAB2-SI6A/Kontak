@@ -8,10 +8,12 @@ import androidx.loader.content.Loader;
 
 import android.os.Bundle;
 import android.view.View;
+import android.widget.Toast;
 
 import masterous.si6a.kontak.databinding.ActivityInputBinding;
 import masterous.si6a.kontak.db.User;
 import masterous.si6a.kontak.loaders.InsertLoader;
+import masterous.si6a.kontak.loaders.UpdateDataLoader;
 
 public class InputActivity extends AppCompatActivity {
     private static final int INSERT_LOADER = 121;
@@ -33,6 +35,19 @@ public class InputActivity extends AppCompatActivity {
             userId = user.getId();
             setDetails(user);
         }
+
+        binding.btnAdd.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (validateFields()) {
+                    if (editMode) {
+                        updateUser();
+                    } else {
+                        insertUser();
+                    }
+                }
+            }
+        });
     }
 
     private void setDetails(User user) {
@@ -69,10 +84,61 @@ public class InputActivity extends AppCompatActivity {
             public void onLoaderReset(@NonNull Loader<Boolean> loader) {
 
             }
-        });
+        }).forceLoad();
     }
 
     private void userAdded() {
+        binding.etName.setText("");
+        binding.etEmail.setText("");
+        binding.etPhone.setText("");
+        Toast.makeText(this, "User added to database!", Toast.LENGTH_SHORT).show();
+    }
+
+    private void updateUser() {
+        User user = new User();
+        user.setId(userId);
+        user.setName(binding.etName.getText().toString());
+        user.setEmail(binding.etEmail.getText().toString());
+        user.setPhone(binding.etPhone.getText().toString());
+        showProgressBar();
+        Bundle args = new Bundle();
+        args.putParcelable("user", user);
+        LoaderManager.getInstance(this).restartLoader(UPDATE_LOADER, args, new LoaderManager.LoaderCallbacks<Integer>() {
+            @NonNull
+            @Override
+            public Loader<Integer> onCreateLoader(int id, @Nullable Bundle args) {
+                return new UpdateDataLoader(InputActivity.this, user);
+            }
+
+            @Override
+            public void onLoadFinished(@NonNull Loader<Integer> loader, Integer data) {
+                hideProgressBar();
+                if (data != -1) {
+                    userUpdated();
+                }
+            }
+
+            @Override
+            public void onLoaderReset(@NonNull Loader<Integer> loader) {
+
+            }
+        }).forceLoad();
+    }
+
+    private void userUpdated() {
+        setResult(RESULT_OK);
+        finish();
+    }
+
+    private boolean validateFields() {
+        if (binding.etName.getText().toString().equals("")
+            || binding.etEmail.getText().toString().equals("")
+            || binding.etPhone.getText().toString().equals("")) {
+            Toast.makeText(this,
+                    "Please fill in all fields!", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+        return true;
     }
 
     private void showProgressBar() {

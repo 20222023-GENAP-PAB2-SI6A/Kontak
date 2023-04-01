@@ -1,5 +1,9 @@
 package masterous.si6a.kontak;
 
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -24,6 +28,15 @@ public class MainActivity extends AppCompatActivity {
     private static final int DELETE_LOADER_CODE = 124;
 
     private ActivityMainBinding binding;
+
+    private ActivityResultLauncher<Intent> intentActivityResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
+        @Override
+        public void onActivityResult(ActivityResult result) {
+            if (result.getResultCode() == RESULT_OK) {
+                userUpdated();
+            }
+        }
+    });
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,7 +90,7 @@ public class MainActivity extends AppCompatActivity {
         kontakViewAdapter.setOnClickListener(new KontakViewAdapter.OnClickListener() {
             @Override
             public void onEditClicked(User user) {
-
+                gotoUpdateUserActivity(user);
             }
 
             @Override
@@ -85,6 +98,13 @@ public class MainActivity extends AppCompatActivity {
                 deleteUser(userId);
             }
         });
+    }
+
+    private void gotoUpdateUserActivity(User user) {
+        Intent intent = new Intent(this, InputActivity.class);
+        intent.putExtra("edit", true);
+        intent.putExtra("user", user);
+        intentActivityResultLauncher.launch(intent);
     }
 
     private void deleteUser(int userId) {
@@ -115,6 +135,11 @@ public class MainActivity extends AppCompatActivity {
 
     private void itemDeleted() {
         Toast.makeText(this, "User deleted!", Toast.LENGTH_SHORT).show();
+        getData();
+    }
+
+    private void userUpdated() {
+        Toast.makeText(this, "User updated successfully!", Toast.LENGTH_SHORT).show();
         getData();
     }
 
